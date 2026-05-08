@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>洛克王国 伤害计算器 — 阶段一</title>
+  <style>
+    body{font-family: Arial, Helvetica, sans-serif;margin:20px;background:#fafafa;color:#222}
+    .controls{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    .card{background:#fff;border-radius:8px;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+    .small{font-size:12px;color:#666}
+    .search{margin-left:auto}
+    .btn{padding:6px 8px;border-radius:6px;border:1px solid #cfcfcf;background:#fff;cursor:pointer}
+    .btn.primary{background:#1976d2;color:#fff;border-color:#1565c0}
+    input[type="text"], input[type="number"], select{padding:6px;border:1px solid #ddd;border-radius:6px}
+    pre{background:#f4f4f4;padding:8px;border-radius:4px;overflow:auto}
+  </style>
+</head>
+<body>
+  <div id="app">
+  <h2>洛克王国 — 精灵基础数据库（阶段一）</h2>
+  <div class="controls">
+    <label>系别筛选：
+      <select id="filter-attr">
+        <option value="">全部</option>
+      </select>
+    </label>
+    <div style="display:flex;gap:6px;align-items:center;margin-left:auto" class="search">
+      <input id="name-search" placeholder="搜索：名称（即时)" />
+      <button id="clear" class="btn">清除</button>
+    </div>
+  </div>
+
+
+  <!-- 双方选择器：攻方 / 守方 -->
+  <div style="margin-bottom:12px;display:flex;gap:24px;align-items:flex-start">
+    <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
+      <strong>攻方（Attacker）</strong>
+      <div style="margin-top:8px">
+        <label>选择精灵：<select id="attacker-select"></select></label>
+      </div>
+      <div style="margin-top:8px">
+        <div>个体值（最多选 3）：</div>
+        <label><input type="checkbox" id="attacker-iv-hp" /> HP</label>
+        <label><input type="checkbox" id="attacker-iv-atk" /> 物攻</label>
+        <label><input type="checkbox" id="attacker-iv-matk" /> 魔攻</label>
+        <label><input type="checkbox" id="attacker-iv-def" /> 物防</label>
+        <label><input type="checkbox" id="attacker-iv-mdef" /> 魔防</label>
+        <label><input type="checkbox" id="attacker-iv-spd" /> 速度</label>
+      </div>
+      <div style="margin-top:8px">
+        <div>性格修正（仅选一项 +0.2）：</div>
+        <label><input type="radio" name="attacker-nature" value="none" checked /> 无</label>
+        <label><input type="radio" name="attacker-nature" value="hp" /> HP</label>
+        <label><input type="radio" name="attacker-nature" value="atk" /> 物攻</label>
+        <label><input type="radio" name="attacker-nature" value="matk" /> 魔攻</label>
+        <label><input type="radio" name="attacker-nature" value="def" /> 物防</label>
+        <label><input type="radio" name="attacker-nature" value="mdef" /> 魔防</label>
+        <label><input type="radio" name="attacker-nature" value="spd" /> 速度</label>
+      </div>
+      <div id="attacker-stats" style="margin-top:8px" class="small"></div>
+    </div>
+    <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
+      <strong>守方（Defender）</strong>
+      <div style="margin-top:8px">
+        <label>选择精灵：<select id="defender-select"></select></label>
+      </div>
+      <div style="margin-top:8px">
+        <div>个体值（最多选 3）：</div>
+        <label><input type="checkbox" id="defender-iv-hp" /> HP</label>
+        <label><input type="checkbox" id="defender-iv-atk" /> 物攻</label>
+        <label><input type="checkbox" id="defender-iv-matk" /> 魔攻</label>
+        <label><input type="checkbox" id="defender-iv-def" /> 物防</label>
+        <label><input type="checkbox" id="defender-iv-mdef" /> 魔防</label>
+        <label><input type="checkbox" id="defender-iv-spd" /> 速度</label>
+      </div>
+      <div style="margin-top:8px">
+        <div>性格修正（仅选一项 +0.2）：</div>
+        <label><input type="radio" name="defender-nature" value="none" checked /> 无</label>
+        <label><input type="radio" name="defender-nature" value="hp" /> HP</label>
+        <label><input type="radio" name="defender-nature" value="atk" /> 物攻</label>
+        <label><input type="radio" name="defender-nature" value="matk" /> 魔攻</label>
+        <label><input type="radio" name="defender-nature" value="def" /> 物防</label>
+        <label><input type="radio" name="defender-nature" value="mdef" /> 魔防</label>
+        <label><input type="radio" name="defender-nature" value="spd" /> 速度</label>
+      </div>
+      <div id="defender-stats" style="margin-top:8px" class="small"></div>
+    </div>
+  </div>
+
+
+  <!-- 伤害计算器 -->
+  <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
+    <label>显示威力: <input type="number" id="power-input" min="0" value="100" style="width:100px"/></label>
+    <label>伤害类型: 
+      <select id="damage-type">
+        <option value="physical">物理</option>
+        <option value="magical">魔法</option>
+      </select>
+    </label>
+    <button id="calc-damage" class="btn">计算伤害</button>
+    <div style="margin-left:12px">结果: <strong id="damage-output">—</strong></div>
+  </div>
+
+  <div style="margin-bottom:10px">
+    <button id="load-default" class="btn">加载 /宠物种族值全览.csv（若在 public 或 同级）</button>
+    <label class="btn">上传 CSV<input type="file" id="file" accept=".csv" style="display:none"/></label>
+  </div>
+
+  <div id="list"></div>
+
+  <template id="row-template">
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+          <div style="display:flex;gap:8px;align-items:center">
+            <strong class="name"></strong>
+            <span class="small id"></span>
+            <span class="small attr"></span>
+          </div>
+          <div>
+            <button class="btn set-attacker">成为攻方</button>
+            <button class="btn set-defender">成为守方</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="small bases"></div>
+          <div class="small sum"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+
+  </div>
+
+  <script src="https://unpkg.com/vue@3.4.0/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+    function parseCSVText(text){
+      // 使用 transformHeader 将表头标准化（去 BOM，trim 并转小写）以提高兼容性
+      const res = Papa.parse(text.trim(), {
+        header:true,
+        skipEmptyLines:true,
+        transformHeader: h => (h||'').replace(/^\uFEFF/, '').trim().toLowerCase()
+      });
+      const fields = (res.meta && res.meta.fields) ? res.meta.fields.map(f=> (f||'').replace(/^\uFEFF/, '').trim().toLowerCase()) : [];
+      return res.data.map((row,idx)=>{
+        // 通过多个候选字段名（小写）获取值，兼容常见中/英文列名与 BOM 情况
+        const get = keys=>{
+          for(const k of keys){
+            const nk = (k||'').toLowerCase();
+            if(row[nk]!==undefined && row[nk]!==null && row[nk]!="") return row[nk];
+          }
+          return '';
+        };
+        let id = get(['编号','#','id','序号']);
+        if(!id) id = (idx+1).toString();
+        let name = get(['宠物名称','名称','名字','name']) || '';
+        const attr = get(['属性','属','type']) || '';
+        const hidden = get(['特性','ability']) || '';
+        // 回退策略：如果没有提取到名字，则尝试使用第一列中非数值且不属于种族值字段的值作为名称
+        if(!name){
+          const skipFields = new Set(['编号','#','id','序号','精力','hp','精力值','物攻','攻击','attack','atk','魔攻','魔法攻击','matk','def','物防','防御','defense','mdef','魔防','魔御','速度','spd','type','属性','名字','名称','特性','ability']);
+          for(const f of fields){
+            if(!f) continue;
+            if(skipFields.has(f)) continue;
+            const val = row[f];
+            if(val===undefined || val===null) continue;
+            const s = String(val).trim();
+            if(!s) continue;
+            // 忽略纯数字或过长的字段
+            if(!isNaN(Number(s))) continue;
+            if(s.length>80) continue;
+            name = s; break;
+          }
+        }
+        const bases = {
+          hp: Number(get(['精力','hp','精力值','生命']))||0,
+          atk: Number(get(['物攻','攻击','attack','atk']))||0,
+          matk: Number(get(['魔攻','魔法攻击','matk','mAtk']))||0,
+          def: Number(get(['物防','防御','def','defense']))||0,
+          mdef: Number(get(['魔防','魔御','mdef','mDef']))||0,
+          spd: Number(get(['速度','速','speed','spd']))||0,
+        };
+        const sum = Object.values(bases).reduce((a,b)=>a+b,0);
+        return {id,name,attr,hidden,bases,sum};
+      });
+    }
+
+    function calcFor(baseVals, iv, nature){
+      const hp = Math.round((1.7 * baseVals.hp + iv * 0.85 + 70) * (1 + nature) + 100);
+      const atk = Math.round((1.1 * baseVals.atk + iv * 0.55 + 10) * (1 + nature) + 50);
+      const matk = Math.round((1.1 * baseVals.matk + iv * 0.55 + 10) * (1 + nature) + 50);
+      const def = Math.round((1.1 * baseVals.def + iv * 0.55 + 10) * (1 + nature) + 50);
+      const mdef = Math.round((1.1 * baseVals.mdef + iv * 0.55 + 10) * (1 + nature) + 50);
+      const spd = Math.round((1.1 * baseVals.spd + iv * 0.55 + 10) * (1 + nature) + 50);
+      return {hp,atk,matk,def,mdef,spd};
+    }
+
+    const app = createApp({
+      setup(){
+        const pokes = ref([]);
+        const iv = ref(0);
+        const nature = ref(0);
+        const q = ref('');
+
+        const ivOptions = [0,60];
+        const natureOptions = [0,0.2];
+        // 18 基础系别（用户指定）
+        const baseTypes = ['火','水','草','光','电','地','翼','冰','武','恶','萌','幻','幽','龙','毒','虫','机械','普通'];
+
+        // 系别映射（常见中文别名 -> 基础系别），所有 key 请以小写存放以便匹配
+        const typeMap = {
+          '一般': '普通', '普通':'普通',
+          '火':'火','炎':'火',
+          '水':'水',
+          '草':'草','草系':'草',
+          '光':'光',
+          '电':'电','雷':'电','电系':'电',
+          '地':'地','地面':'地','地面系':'地',
+          '飞行':'翼','翼':'翼','飞行系':'翼',
+          '冰':'冰',
+          '格斗':'武','格斗系':'武','武':'武',
+          '超能':'幻','超能力':'幻','超能系':'幻',
+          '妖精':'萌','萌':'萌',
+          '幽灵':'幽','幽':'幽',
+          '龙':'龙',
+          '毒':'毒',
+          '虫':'虫',
+          '岩石':'普通','岩石系':'普通',
+          '钢':'机械','金属':'机械','机械':'机械'
+        };
+
+        function mapAttrToBases(attr){
+          if(!attr) return [];
+          // 切分常见分隔符：/,、|,空格,；,逗号等
+          const tokens = String(attr).split(/[\/,、\|;，\s]+/).map(t=>t.trim()).filter(Boolean);
+          const out = new Set();
+          tokens.forEach(tok=>{
+            const key = tok.replace(/系$/,'').toLowerCase();
+            if(typeMap[key]){ out.add(typeMap[key]); return; }
+            // 直接尝试基础系别中文包含匹配（如 CSV 中使用复合或非标准写法）
+            for(const bt of baseTypes){ if(tok.indexOf(bt)!==-1) out.add(bt); }
+          });
+          return Array.from(out);
+        }
+
+        function updateAttrOptions(){
+          try{
+            const sel = document.getElementById('filter-attr');
+            if(!sel) return;
+            // 只显示在数据中存在的基础系别，以基础系别顺序为准
+            const available = baseTypes.filter(bt => pokes.value.some(p => (p.types || []).includes(bt)));
+            const cur = sel.value || '';
+            sel.innerHTML = '<option value="">全部</option>' + available.map(a=>`<option value="${a}">${a}</option>`).join('');
+            if(available.includes(cur)) sel.value = cur; else sel.value='';
+          }catch(e){console.error(e)}
+        }
+
+        function populateSideSelectors(){
+          try{
+            const a = document.getElementById('attacker-select');
+            const d = document.getElementById('defender-select');
+            if(!a || !d) return;
+            const opts = pokes.value.map(p=>`<option value="${p.id}">${p.name || ('#'+p.id)}</option>`).join('');
+            a.innerHTML = '<option value="">-- 请选择 --</option>' + opts;
+            d.innerHTML = '<option value="">-- 请选择 --</option>' + opts;
+          }catch(e){console.error(e)}
+        }
+
+        function getSideIVMap(side){
+          const stats = ['hp','atk','matk','def','mdef','spd'];
+          const map = {};
+          stats.forEach(s=>{
+            const el = document.getElementById(`${side}-iv-${s}`);
+            map[s] = (el && el.checked) ? 60 : 0;
+          });
+          return map;
+        }
+        function getSideNatureStat(side){
+          const radios = document.getElementsByName(`${side}-nature`);
+          for(const r of radios){ if(r.checked) return r.value === 'none' ? null : r.value; }
+          return null;
+        }
+        function calcStat(base, ivVal, natureVal, isHP){
+          if(isHP){
+            return Math.round((1.7 * base + ivVal * 0.85 + 70) * (1 + natureVal) + 100);
+          }
+          return Math.round((1.1 * base + ivVal * 0.55 + 10) * (1 + natureVal) + 50);
+        }
+        function renderSelectedSides(){
+          try{
+            const aId = document.getElementById('attacker-select')?.value;
+            const dId = document.getElementById('defender-select')?.value;
+            const aIVMap = getSideIVMap('attacker');
+            const dIVMap = getSideIVMap('defender');
+            const aNatStat = getSideNatureStat('attacker');
+            const dNatStat = getSideNatureStat('defender');
+            const aBox = document.getElementById('attacker-stats');
+            const dBox = document.getElementById('defender-stats');
+            const statsOrder = ['hp','atk','matk','def','mdef','spd'];
+            if(aId){
+              const p = pokes.value.find(x=>String(x.id)===String(aId));
+              if(p){
+                const parts = statsOrder.map(s=>{
+                  const ivv = aIVMap[s]||0;
+                  const nat = (aNatStat===s) ? 0.2 : 0;
+                  const val = calcStat(p.bases[s], ivv, nat, s==='hp');
+                  const label = s==='hp' ? 'HP' : (s==='atk'?'物攻':s==='matk'?'魔攻':s==='def'?'物防':s==='mdef'?'魔防':'速度');
+                  return `${label}:${val}`;
+                });
+                aBox.innerHTML = parts.join(' ');
+              } else { aBox.innerHTML = '未找到精灵'; }
+            } else { aBox.innerHTML = '未选择攻方'; }
+            if(dId){
+              const p2 = pokes.value.find(x=>String(x.id)===String(dId));
+              if(p2){
+                const parts2 = statsOrder.map(s=>{
+                  const ivv = dIVMap[s]||0;
+                  const nat = (dNatStat===s) ? 0.2 : 0;
+                  const val = calcStat(p2.bases[s], ivv, nat, s==='hp');
+                  const label = s==='hp' ? 'HP' : (s==='atk'?'物攻':s==='matk'?'魔攻':s==='def'?'物防':s==='mdef'?'魔防':'速度');
+                  return `${label}:${val}`;
+                });
+                dBox.innerHTML = parts2.join(' ');
+              } else { dBox.innerHTML = '未找到精灵'; }
+            } else { dBox.innerHTML = '未选择守方'; }
+          }catch(e){console.error('renderSelectedSides',e)}
+        }
+
+        function computeDamage(){
+          try{
+            const power = Number(document.getElementById('power-input')?.value || 0);
+            const type = document.getElementById('damage-type')?.value || 'physical';
+            const aId = document.getElementById('attacker-select')?.value;
+            const dId = document.getElementById('defender-select')?.value;
+            if(!aId || !dId) { document.getElementById('damage-output').textContent = '请先选择攻方与守方'; return; }
+            const statsOrder = { physical: {att:'atk', def:'def'}, magical: {att:'matk', def:'mdef'} };
+            const attKey = statsOrder[type].att;
+            const defKey = statsOrder[type].def;
+            // compute attacker stat
+            const aIVMap = getSideIVMap('attacker');
+            const dIVMap = getSideIVMap('defender');
+            const aNat = getSideNatureStat('attacker');
+            const dNat = getSideNatureStat('defender');
+            const pA = pokes.value.find(x=>String(x.id)===String(aId));
+            const pD = pokes.value.find(x=>String(x.id)===String(dId));
+            if(!pA || !pD){ document.getElementById('damage-output').textContent='精灵数据不可用'; return; }
+            const aIvVal = aIVMap[attKey]||0;
+            const dIvVal = dIVMap[defKey]||0;
+            const aNatVal = (aNat===attKey)?0.2:0;
+            const dNatVal = (dNat===defKey)?0.2:0;
+            const aStat = calcStat(pA.bases[attKey], aIvVal, aNatVal, attKey==='hp');
+            const dStat = calcStat(pD.bases[defKey], dIvVal, dNatVal, defKey==='hp');
+            if(!dStat || dStat===0){ document.getElementById('damage-output').textContent='守方防御为0，无法计算'; return; }
+            const damage = power * 0.9 * (aStat / dStat);
+            document.getElementById('damage-output').textContent = Math.round(damage);
+          }catch(e){ console.error('computeDamage',e); document.getElementById('damage-output').textContent='计算错误'; }
+        }
+
+        function loadTextCSV(text){
+          pokes.value = parseCSVText(text);
+          // 为每个精灵计算其基础系别数组（用于 filter 与搜索匹配）
+          pokes.value.forEach(p=>{ p.types = mapAttrToBases(p.attr); });
+          updateAttrOptions();
+          populateSideSelectors();
+          // render updated list after loading new data (ensure file upload or default load updates UI)
+          try{ renderList(); renderSelectedSides(); }catch(e){ console.error('renderList error', e); }
+        }
+
+        async function tryLoadDefault(){
+          try{
+            const res = await fetch('./宠物种族值全览.csv');
+            if(!res.ok) throw new Error('not found');
+            const txt = await res.text();
+            loadTextCSV(txt);
+          }catch(e){
+            alert('未能从 ./宠物种族值全览.csv 自动加载，请使用上传功能上传 CSV（或将 CSV 放到项目 public 根目录）。');
+          }
+        }
+
+        function onFile(ev){
+          const f = ev.target.files[0];
+          if(!f) return;
+          const reader = new FileReader();
+          reader.onload = e=> loadTextCSV(e.target.result);
+          reader.readAsText(f, 'utf-8');
+        }
+
+        function filtered(){
+          let s = q.value.trim();
+          if(s.endsWith('系')) s = s.slice(0,-1);
+          const qs = s.toLowerCase();
+          const attrFilterEl = document.getElementById('filter-attr');
+          const attrFilter = attrFilterEl ? (attrFilterEl.value || '') : '';
+          const attrFilterLower = (attrFilter || '').toString().toLowerCase();
+          if(!qs && !attrFilter) return pokes.value;
+          return pokes.value.filter(p=>{
+            const name = (p.name||'').toLowerCase();
+            const attr = (p.attr||'').toLowerCase();
+            const typesArr = (p.types||[]).map(t=> (t||'').toString().toLowerCase());
+            const typesStr = typesArr.join('|');
+            const matchText = (!qs) || name.includes(qs) || attr.includes(qs) || typesStr.includes(qs);
+            const matchAttr = (!attrFilter) || typesArr.includes(attrFilterLower);
+            return matchText && matchAttr;
+          });
+        }
+
+        function renderList(){
+          const container = document.getElementById('list');
+          container.innerHTML='';
+          for(const p of filtered()){
+            const tpl = document.getElementById('row-template');
+            let node;
+            if (tpl && tpl.content && tpl.content.firstElementChild) {
+              node = tpl.content.firstElementChild.cloneNode(true);
+            } else {
+              node = document.createElement('div');
+              node.className = 'card';
+              node.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div style="display:flex;gap:8px;align-items:center"><strong class="name"></strong><span class="small id"></span><span class="small attr"></span></div><div><button class="btn set-attacker">成为攻方</button><button class="btn set-defender">成为守方</button></div></div><div style="display:flex;gap:12px;align-items:center"><div class="small bases"></div><div class="small sum"></div></div></div>';
+            }
+            node.querySelector('.name').textContent = p.name;
+            node.querySelector('.id').textContent = `#${p.id}`;
+            node.querySelector('.attr').textContent = p.attr ? ` / ${p.attr}` : '';
+            const basesEl = node.querySelector('.bases');
+            if(basesEl){ basesEl.textContent = `种族: HP:${p.bases.hp} 物攻:${p.bases.atk} 魔攻:${p.bases.matk} 物防:${p.bases.def} 魔防:${p.bases.mdef} 速:${p.bases.spd}`; }
+            const sumEl = node.querySelector('.sum');
+            if(sumEl){ sumEl.textContent = `总和: ${p.sum}`; }
+            // 快速设为攻方 / 守方 按钮处理
+            const setAttBtn = node.querySelector('.set-attacker');
+            const setDefBtn = node.querySelector('.set-defender');
+            if(setAttBtn){
+              setAttBtn.addEventListener('click', ()=>{
+                const sel = document.getElementById('attacker-select');
+                if(sel){ sel.value = p.id; renderSelectedSides(); computeDamage(); }
+              });
+            }
+            if(setDefBtn){
+              setDefBtn.addEventListener('click', ()=>{
+                const sel = document.getElementById('defender-select');
+                if(sel){ sel.value = p.id; renderSelectedSides(); computeDamage(); }
+              });
+            }
+
+            container.appendChild(node);
+          }
+        }
+
+        onMounted(()=>{
+          document.getElementById('file').addEventListener('change', onFile);
+          document.getElementById('load-default').addEventListener('click', tryLoadDefault);
+          const nameSearchEl = document.getElementById('name-search'); if(nameSearchEl) nameSearchEl.addEventListener('input', e=>{ q.value = e.target.value; renderList(); });
+          document.getElementById('clear').addEventListener('click', ()=>{ q.value=''; const ne=document.getElementById('name-search'); if(ne) ne.value=''; renderList(); });
+
+          // attacker/defender change bindings
+          const statsKeys = ['hp','atk','matk','def','mdef','spd'];
+          // bind select changes
+          ['attacker-select','defender-select'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('change', ()=> { renderSelectedSides(); computeDamage(); }); });
+          // bind iv checkbox changes with max-3 enforcement
+          statsKeys.forEach(s=>{
+            ['attacker','defender'].forEach(side=>{
+              const id = `${side}-iv-${s}`;
+              const el = document.getElementById(id);
+              if(!el) return;
+              el.checked = false; // default off
+              el.addEventListener('change', (e)=>{
+                // enforce max 3 checked per side
+                const others = statsKeys.map(k=>document.getElementById(`${side}-iv-${k}`)).filter(x=>x);
+                const cnt = others.filter(x=>x.checked).length;
+                if(cnt>3){ e.target.checked = false; alert('个体值最多只能为三维设置为60'); }
+                renderSelectedSides();
+                computeDamage();
+              });
+            });
+          });
+          // bind nature radios
+          ['attacker','defender'].forEach(side=>{
+            const radios = document.getElementsByName(`${side}-nature`);
+            radios.forEach(r=> r.addEventListener('change', ()=> { renderSelectedSides(); computeDamage(); }));
+          });
+          // bind damage calc button
+          const calcBtn = document.getElementById('calc-damage'); if(calcBtn) calcBtn.addEventListener('click', ()=> computeDamage());
+          // bind inputs to auto-recompute
+          const powerInp = document.getElementById('power-input'); if(powerInp) powerInp.addEventListener('input', ()=> computeDamage());
+          const dmgType = document.getElementById('damage-type'); if(dmgType) dmgType.addEventListener('change', ()=> computeDamage());
+
+          // bind filter change to re-render list
+          const filterEl = document.getElementById('filter-attr'); if(filterEl) filterEl.addEventListener('change', ()=> renderList());
+          renderList();
+        });
+
+        return {};
+      }
+    });
+    app.mount('#app');
+  </script>
+</body>
+</html>

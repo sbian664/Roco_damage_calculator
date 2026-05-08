@@ -450,46 +450,68 @@
           }
         }
 
-        onMounted(()=>{
+        onMounted(() => {
           document.getElementById('file').addEventListener('change', onFile);
           document.getElementById('load-default').addEventListener('click', tryLoadDefault);
-          const nameSearchEl = document.getElementById('name-search'); if(nameSearchEl) nameSearchEl.addEventListener('input', e=>{ q.value = e.target.value; renderList(); });
-          document.getElementById('clear').addEventListener('click', ()=>{ q.value=''; const ne=document.getElementById('name-search'); if(ne) ne.value=''; renderList(); });
-
+          const nameSearchEl = document.getElementById('name-search');
+          if (nameSearchEl)
+            nameSearchEl.addEventListener('input', (e) => {
+              q.value = e.target.value;
+              renderList();
+            });
+          document.getElementById('clear').addEventListener('click', () => {
+            q.value = '';
+            const ne = document.getElementById('name-search');
+            if (ne) ne.value = '';
+            renderList();
+          });
+        
           // attacker/defender change bindings
-          const statsKeys = ['hp','atk','matk','def','mdef','spd'];
-          // bind select changes
-          ['attacker-select','defender-select'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('change', ()=> { renderSelectedSides(); computeDamage(); }); });
-          // bind iv checkbox changes with max-3 enforcement
-          statsKeys.forEach(s=>{
-            ['attacker','defender'].forEach(side=>{
+          const statsKeys = ['hp', 'atk', 'matk', 'def', 'mdef', 'spd'];
+          ['attacker-select', 'defender-select'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => {
+              renderSelectedSides();
+              computeDamage();
+            });
+          });
+          statsKeys.forEach((s) => {
+            ['attacker', 'defender'].forEach((side) => {
               const id = `${side}-iv-${s}`;
               const el = document.getElementById(id);
-              if(!el) return;
-              el.checked = false; // default off
-              el.addEventListener('change', (e)=>{
-                // enforce max 3 checked per side
-                const others = statsKeys.map(k=>document.getElementById(`${side}-iv-${k}`)).filter(x=>x);
-                const cnt = others.filter(x=>x.checked).length;
-                if(cnt>3){ e.target.checked = false; alert('个体值最多只能为三维设置为60'); }
+              if (!el) return;
+              el.checked = false;
+              el.addEventListener('change', (e) => {
+                const others = statsKeys.map((k) => document.getElementById(`${side}-iv-${k}`)).filter((x) => x);
+                const cnt = others.filter((x) => x.checked).length;
+                if (cnt > 3) {
+                  e.target.checked = false;
+                  alert('个体值最多只能为三维设置为60');
+                }
                 renderSelectedSides();
                 computeDamage();
               });
             });
           });
-          // bind nature radios
-          ['attacker','defender'].forEach(side=>{
+          ['attacker', 'defender'].forEach((side) => {
             const radios = document.getElementsByName(`${side}-nature`);
-            radios.forEach(r=> r.addEventListener('change', ()=> { renderSelectedSides(); computeDamage(); }));
+            radios.forEach((r) => r.addEventListener('change', () => {
+              renderSelectedSides();
+              computeDamage();
+            }));
           });
-          // bind damage calc button
-          const calcBtn = document.getElementById('calc-damage'); if(calcBtn) calcBtn.addEventListener('click', ()=> computeDamage());
-          // bind inputs to auto-recompute
-          const powerInp = document.getElementById('power-input'); if(powerInp) powerInp.addEventListener('input', ()=> computeDamage());
-          const dmgType = document.getElementById('damage-type'); if(dmgType) dmgType.addEventListener('change', ()=> computeDamage());
-
-          // bind filter change to re-render list
-          const filterEl = document.getElementById('filter-attr'); if(filterEl) filterEl.addEventListener('change', ()=> renderList());
+          const calcBtn = document.getElementById('calc-damage');
+          if (calcBtn) calcBtn.addEventListener('click', () => computeDamage());
+          const powerInp = document.getElementById('power-input');
+          if (powerInp) powerInp.addEventListener('input', () => computeDamage());
+          const dmgType = document.getElementById('damage-type');
+          if (dmgType) dmgType.addEventListener('change', () => computeDamage());
+          const filterEl = document.getElementById('filter-attr');
+          if (filterEl) filterEl.addEventListener('change', () => renderList());
+        
+          // 自动加载 CSV
+          tryLoadDefault();
+        
           renderList();
         });
 

@@ -15,122 +15,126 @@
     .btn.primary{background:#1976d2;color:#fff;border-color:#1565c0}
     input[type="text"], input[type="number"], select{padding:6px;border:1px solid #ddd;border-radius:6px}
     pre{background:#f4f4f4;padding:8px;border-radius:4px;overflow:auto}
+    #load-default, #file { display: none !important; }
   </style>
 </head>
 <body>
   <div id="app">
-  <h2>洛克王国 — 精灵基础数据库（阶段一）</h2>
-  <div class="controls">
-    <label>系别筛选：
-      <select id="filter-attr">
-        <option value="">全部</option>
-      </select>
-    </label>
-    <div style="display:flex;gap:6px;align-items:center;margin-left:auto" class="search">
-      <input id="name-search" placeholder="搜索：名称（即时)" />
-      <button id="clear" class="btn">清除</button>
+    <h2>洛克王国 — 伤害计算器</h2>
+    <div class="controls">
+      <label>系别筛选：
+        <select id="filter-attr">
+          <option value="">全部</option>
+        </select>
+      </label>
+      <div style="display:flex;gap:6px;align-items:center;margin-left:auto" class="search">
+        <input id="name-search" placeholder="搜索：名称（系别）" />
+        <button id="clear" class="btn">清除</button>
+      </div>
     </div>
-  </div>
 
 
-  <!-- 双方选择器：攻方 / 守方 -->
-  <div style="margin-bottom:12px;display:flex;gap:24px;align-items:flex-start">
-    <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
-      <strong>攻方（Attacker）</strong>
-      <div style="margin-top:8px">
-        <label>选择精灵：<select id="attacker-select"></select></label>
+    <!-- 双方选择器：攻方 / 守方 -->
+    <div style="margin-bottom:12px;display:flex;gap:24px;align-items:flex-start">
+      <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
+        <strong>攻方（Attacker）</strong>
+        <div style="margin-top:8px">
+          <label>选择精灵：<select id="attacker-select"></select></label>
+        </div>
+        <div style="margin-top:8px">
+          <div>个体值（最多选 3）：</div>
+          <label><input type="checkbox" id="attacker-iv-hp" /> HP</label>
+          <label><input type="checkbox" id="attacker-iv-atk" /> 物攻</label>
+          <label><input type="checkbox" id="attacker-iv-matk" /> 魔攻</label>
+          <label><input type="checkbox" id="attacker-iv-def" /> 物防</label>
+          <label><input type="checkbox" id="attacker-iv-mdef" /> 魔防</label>
+          <label><input type="checkbox" id="attacker-iv-spd" /> 速度</label>
+        </div>
+        <div style="margin-top:8px">
+          <div>性格修正（仅选一项 +0.2）：</div>
+          <label><input type="radio" name="attacker-nature" value="none" checked /> 无</label>
+          <label><input type="radio" name="attacker-nature" value="hp" /> HP</label>
+          <label><input type="radio" name="attacker-nature" value="atk" /> 物攻</label>
+          <label><input type="radio" name="attacker-nature" value="matk" /> 魔攻</label>
+          <label><input type="radio" name="attacker-nature" value="def" /> 物防</label>
+          <label><input type="radio" name="attacker-nature" value="mdef" /> 魔防</label>
+          <label><input type="radio" name="attacker-nature" value="spd" /> 速度</label>
+        </div>
+        <div id="attacker-stats" style="margin-top:8px" class="small"></div>
       </div>
-      <div style="margin-top:8px">
-        <div>个体值（最多选 3）：</div>
-        <label><input type="checkbox" id="attacker-iv-hp" /> HP</label>
-        <label><input type="checkbox" id="attacker-iv-atk" /> 物攻</label>
-        <label><input type="checkbox" id="attacker-iv-matk" /> 魔攻</label>
-        <label><input type="checkbox" id="attacker-iv-def" /> 物防</label>
-        <label><input type="checkbox" id="attacker-iv-mdef" /> 魔防</label>
-        <label><input type="checkbox" id="attacker-iv-spd" /> 速度</label>
+      <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
+        <strong>守方（Defender）</strong>
+        <div style="margin-top:8px">
+          <label>选择精灵：<select id="defender-select"></select></label>
+        </div>
+        <div style="margin-top:8px">
+          <div>个体值（最多选 3）：</div>
+          <label><input type="checkbox" id="defender-iv-hp" /> HP</label>
+          <label><input type="checkbox" id="defender-iv-atk" /> 物攻</label>
+          <label><input type="checkbox" id="defender-iv-matk" /> 魔攻</label>
+          <label><input type="checkbox" id="defender-iv-def" /> 物防</label>
+          <label><input type="checkbox" id="defender-iv-mdef" /> 魔防</label>
+          <label><input type="checkbox" id="defender-iv-spd" /> 速度</label>
+        </div>
+        <div style="margin-top:8px">
+          <div>性格修正（仅选一项 +0.2）：</div>
+          <label><input type="radio" name="defender-nature" value="none" checked /> 无</label>
+          <label><input type="radio" name="defender-nature" value="hp" /> HP</label>
+          <label><input type="radio" name="defender-nature" value="atk" /> 物攻</label>
+          <label><input type="radio" name="defender-nature" value="matk" /> 魔攻</label>
+          <label><input type="radio" name="defender-nature" value="def" /> 物防</label>
+          <label><input type="radio" name="defender-nature" value="mdef" /> 魔防</label>
+          <label><input type="radio" name="defender-nature" value="spd" /> 速度</label>
+        </div>
+        <div id="defender-stats" style="margin-top:8px" class="small"></div>
       </div>
-      <div style="margin-top:8px">
-        <div>性格修正（仅选一项 +0.2）：</div>
-        <label><input type="radio" name="attacker-nature" value="none" checked /> 无</label>
-        <label><input type="radio" name="attacker-nature" value="hp" /> HP</label>
-        <label><input type="radio" name="attacker-nature" value="atk" /> 物攻</label>
-        <label><input type="radio" name="attacker-nature" value="matk" /> 魔攻</label>
-        <label><input type="radio" name="attacker-nature" value="def" /> 物防</label>
-        <label><input type="radio" name="attacker-nature" value="mdef" /> 魔防</label>
-        <label><input type="radio" name="attacker-nature" value="spd" /> 速度</label>
-      </div>
-      <div id="attacker-stats" style="margin-top:8px" class="small"></div>
     </div>
-    <div style="border:1px solid #ddd;padding:10px;border-radius:6px;width:48%">
-      <strong>守方（Defender）</strong>
-      <div style="margin-top:8px">
-        <label>选择精灵：<select id="defender-select"></select></label>
+
+
+    <!-- 伤害计算器 -->
+    <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
+      <label>显示威力: <input type="number" id="power-input" min="0" value="100" style="width:100px"/></label>
+      <label>伤害类型: 
+        <select id="damage-type">
+          <option value="physical">物理</option>
+          <option value="magical">魔法</option>
+        </select>
+      </label>
+      <button id="calc-damage" class="btn">计算伤害</button>
+      <div style="margin-left:12px">
+        结果: <strong id="damage-output">—</strong>
+        <div style="margin-top:6px">所需杀死威力: <strong id="power-needed">—</strong></div>
       </div>
-      <div style="margin-top:8px">
-        <div>个体值（最多选 3）：</div>
-        <label><input type="checkbox" id="defender-iv-hp" /> HP</label>
-        <label><input type="checkbox" id="defender-iv-atk" /> 物攻</label>
-        <label><input type="checkbox" id="defender-iv-matk" /> 魔攻</label>
-        <label><input type="checkbox" id="defender-iv-def" /> 物防</label>
-        <label><input type="checkbox" id="defender-iv-mdef" /> 魔防</label>
-        <label><input type="checkbox" id="defender-iv-spd" /> 速度</label>
-      </div>
-      <div style="margin-top:8px">
-        <div>性格修正（仅选一项 +0.2）：</div>
-        <label><input type="radio" name="defender-nature" value="none" checked /> 无</label>
-        <label><input type="radio" name="defender-nature" value="hp" /> HP</label>
-        <label><input type="radio" name="defender-nature" value="atk" /> 物攻</label>
-        <label><input type="radio" name="defender-nature" value="matk" /> 魔攻</label>
-        <label><input type="radio" name="defender-nature" value="def" /> 物防</label>
-        <label><input type="radio" name="defender-nature" value="mdef" /> 魔防</label>
-        <label><input type="radio" name="defender-nature" value="spd" /> 速度</label>
-      </div>
-      <div id="defender-stats" style="margin-top:8px" class="small"></div>
     </div>
-  </div>
 
+    <div style="margin-bottom:10px;display:none">
+      <button id="load-default" class="btn">加载 /宠物种族值全览.csv（若在 public 或 同级）</button>
+      <label class="btn">上传 CSV<input type="file" id="file" accept=".csv" style="display:none"/></label>
+    </div>
 
-  <!-- 伤害计算器 -->
-  <div style="margin-bottom:12px;display:flex;gap:12px;align-items:center">
-    <label>显示威力: <input type="number" id="power-input" min="0" value="100" style="width:100px"/></label>
-    <label>伤害类型: 
-      <select id="damage-type">
-        <option value="physical">物理</option>
-        <option value="magical">魔法</option>
-      </select>
-    </label>
-    <button id="calc-damage" class="btn">计算伤害</button>
-    <div style="margin-left:12px">结果: <strong id="damage-output">—</strong></div>
-  </div>
+    <div id="list"></div>
 
-  <div style="margin-bottom:10px">
-    <button id="load-default" class="btn">加载 /宠物种族值全览.csv（若在 public 或 同级）</button>
-    <label class="btn">上传 CSV<input type="file" id="file" accept=".csv" style="display:none"/></label>
-  </div>
-
-  <div id="list"></div>
-
-  <template id="row-template">
-    <div class="card">
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
-          <div style="display:flex;gap:8px;align-items:center">
-            <strong class="name"></strong>
-            <span class="small id"></span>
-            <span class="small attr"></span>
+    <template id="row-template">
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+            <div style="display:flex;gap:8px;align-items:center">
+              <strong class="name"></strong>
+              <span class="small id"></span>
+              <span class="small attr"></span>
+            </div>
+            <div>
+              <button class="btn set-attacker">成为攻方</button>
+              <button class="btn set-defender">成为守方</button>
+            </div>
           </div>
-          <div>
-            <button class="btn set-attacker">成为攻方</button>
-            <button class="btn set-defender">成为守方</button>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="small bases"></div>
+            <div class="small sum"></div>
           </div>
         </div>
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="small bases"></div>
-          <div class="small sum"></div>
-        </div>
       </div>
-    </div>
-  </template>
+    </template>
 
 
   </div>
@@ -162,22 +166,7 @@
         let name = get(['宠物名称','名称','名字','name']) || '';
         const attr = get(['属性','属','type']) || '';
         const hidden = get(['特性','ability']) || '';
-        // 回退策略：如果没有提取到名字，则尝试使用第一列中非数值且不属于种族值字段的值作为名称
-        if(!name){
-          const skipFields = new Set(['编号','#','id','序号','精力','hp','精力值','物攻','攻击','attack','atk','魔攻','魔法攻击','matk','def','物防','防御','defense','mdef','魔防','魔御','速度','spd','type','属性','名字','名称','特性','ability']);
-          for(const f of fields){
-            if(!f) continue;
-            if(skipFields.has(f)) continue;
-            const val = row[f];
-            if(val===undefined || val===null) continue;
-            const s = String(val).trim();
-            if(!s) continue;
-            // 忽略纯数字或过长的字段
-            if(!isNaN(Number(s))) continue;
-            if(s.length>80) continue;
-            name = s; break;
-          }
-        }
+        
         const bases = {
           hp: Number(get(['精力','hp','精力值','生命']))||0,
           atk: Number(get(['物攻','攻击','attack','atk']))||0,
@@ -356,9 +345,19 @@
             const dNatVal = (dNat===defKey)?0.2:0;
             const aStat = calcStat(pA.bases[attKey], aIvVal, aNatVal, attKey==='hp');
             const dStat = calcStat(pD.bases[defKey], dIvVal, dNatVal, defKey==='hp');
-            if(!dStat || dStat===0){ document.getElementById('damage-output').textContent='守方防御为0，无法计算'; return; }
+            if(!dStat || dStat===0){ document.getElementById('damage-output').textContent='守方防御为0，无法计算'; document.getElementById('power-needed').textContent='—'; return; }
             const damage = power * 0.9 * (aStat / dStat);
             document.getElementById('damage-output').textContent = Math.round(damage);
+            // 计算所需威力以致命（需要最小整数威力）
+            try{
+              // 守方生命按当前配置计算（考虑 HP 的 IV 与 性格）
+              const defHP = calcStat(pD.bases['hp'], dIVMap['hp']||0, (dNat=== 'hp')?0.2:0, true);
+              if(!aStat || aStat===0){ document.getElementById('power-needed').textContent='—'; }
+              else{
+                const required = (defHP) / (0.9 * (aStat / dStat));
+                document.getElementById('power-needed').textContent = Math.ceil(required);
+              }
+            }catch(e){ console.error('requiredPower',e); document.getElementById('power-needed').textContent='—'; }
           }catch(e){ console.error('computeDamage',e); document.getElementById('damage-output').textContent='计算错误'; }
         }
 
